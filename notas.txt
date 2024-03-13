@@ -1,0 +1,81 @@
+A modo de recordatorio personal
+
+La concurrencia en golang nos ayuda a trabajar problemas que requiera una doble o mas ejecuciones al mismo tiempo.
+
+En estos casos la programacion concurrente debe ir de la mano con el hardware para poder llevare a cabo. En este caso no sirve de nada
+tener varias Goroutines si no tenemos un procesador que soporte la programacion multihilos.
+
+Hay varias cosas a aclarar para entender como funcionan las goroutines:
+
+Para iniciar una goroutine esta debe realizarse por medio de un llamdo a una funcion con la palabra clave "go" delante de la invocacion de la funcion.
+
+Ej:  go nombreFunc( par1, par 2){}
+
+Hay un tema y es que el hecho de llamarlas como no se sabe cuando retornaran su valor, estas funciones no pueden retornar un valor asi tal cual  
+
+X "valor := go nombreFunc( par1, par 2){} "
+
+Esta funcion para retornar un valor debe devolver su informacion por medio de un canal.
+
+Los canales en golang realmente son utiles si lo que queremos es que una goroutine devuelva cierta informacion a un lugar especifico. Estas mismas no 
+las domino con presicion pero comprendo que su funcion es pasar manejar valores entre las goroutines o tambien hacie la ejecucion principal.
+
+Para hacer un canal se crea con:
+
+ch := make(chan *tipo de dato que se va a mover por el canal*, cantidad de datos maximos antes que se bloquee la goroutine)
+
+Y donde en una funcion deberemos especificar cuando devolveremos determinados valores por el canal
+
+Ej:
+func nombreFunc (c chan <- *TIPO DE DATO QUE SE MANEJA EN EL CANAL*) {
+
+    valor := 1
+
+    c <- valor
+}
+
+Aqui la funcion generara un valor y este sera devuelto por el canal que se proporciono para que se lo maneje. Tambien se que hay formas de ocupar una estructura vacia como devolucion 
+para que cuando se reciba el valor del canal funcione como un disparador o señar de que la goroutine se ha finalizado.
+
+
+Por otro lado hay una estructura llamada "select" que nos permite manejar la informacion que devuelven estas goroutines a medida que devuelven indormacion por los canales.
+
+select {
+
+    case v := <- ch1
+        /*Ejecucion si se recibe algo en este canal*/
+
+    case v := <- ch2
+        /*Ejecucion si se recibe algo en este canal*/
+}
+
+Por ultimo tenemos un biblioteca llamada sync la cual nos permite a diferencia del select manejar las goroutines.
+
+Aclarar que lo use en lo mas basico que es 
+
+Crear una variables
+
+var wg sync.WaitGroup
+
+La cual es usada para que antes (Solo por claridad del codigo) de iniciar una goroutine se añade 1 al contador:
+
+wg.add(1) //o la cantidad que se quieran añadir
+
+Luego, dentro de la funcion deberemos ocupar
+
+wg.Done()
+
+Al finalizar la funcion de la goroutune para que se reste del contador una de las ejecuciones.
+
+Ej:
+
+func nombreFunc (wg sync.WaitGroup) {
+
+    /*Se realizan las operaciones de la funcion*/
+
+    wg.Done()
+}
+
+Para que nosotros antes de finalizar el la funcion que llama a las goroutines esperemos a que todas las goroutines hayan finalizado
+
+wg.Wait
